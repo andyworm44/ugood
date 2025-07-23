@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "name": "UGood",
+    "slug": "ugood-app",
+    "version": "1.0.0",
+    "platforms": ["ios", "android"],
+    "orientation": "portrait",
+    "splash": {
+      "backgroundColor": "#007AFF"
+    }
+  }
+} 
