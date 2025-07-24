@@ -75,7 +75,7 @@ export default function CreatePostScreen({ navigation }: CreatePostScreenProps) 
         style={styles.content}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <ScrollView style={styles.scrollView}>
+        <ScrollView contentContainerStyle={styles.scrollContent}>
           <Card style={styles.card}>
             <Card.Content>
               <TextInput
@@ -134,8 +134,7 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
   },
-  scrollView: {
-    flex: 1,
+  scrollContent: {
     padding: 16,
   },
   card: {

@@ -1,12 +1,26 @@
 {
   "expo": {
-    "name": "UGood",
+    "name": "UGood - 你還好嗎",
     "slug": "ugood-app",
     "version": "1.0.0",
-    "platforms": ["ios", "android"],
     "orientation": "portrait",
+    "userInterfaceStyle": "light",
     "splash": {
-      "backgroundColor": "#007AFF"
+      "backgroundColor": "#8FBC8F",
+      "resizeMode": "contain"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.ugood.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#8FBC8F"
+      },
+      "package": "com.ugood.app"
     }
   }
 } 

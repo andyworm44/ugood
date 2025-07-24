@@ -18,8 +18,6 @@ import {
 import { Button, TextInput, Card } from 'react-native-paper';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import LoginScreen from './components/LoginScreen';
-import AudioRecorder from './src/components/AudioRecorder';
-import AudioPlayer from './src/components/AudioPlayer';
 
 const Stack = createStackNavigator();
 const { width, height } = Dimensions.get('window');
@@ -363,17 +361,7 @@ function HomeScreen({ navigation }: any) {
             style={styles.testButton}
             onPress={() => navigation.navigate('Recording')}
           >
-            <Text style={styles.testButtonText}>🎤 測試錄音功能</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={[styles.testButton, { backgroundColor: '#FF6B6B' }]}
-            onPress={() => navigation.navigate('ListenBlessing', { 
-              selfRecording: false, 
-              recordingDuration: 150 
-            })}
-          >
-            <Text style={styles.testButtonText}>🎧 體驗模擬祝福</Text>
+            <Text style={styles.testButtonText}>測試錄音功能</Text>
           </TouchableOpacity>
 
           <TouchableOpacity 
@@ -518,37 +506,16 @@ function TodayMatchScreen({ navigation }: any) {
 }
 
 // 聆聽祝福頁面
-function ListenBlessingScreen({ navigation, route }: any) {
+function ListenBlessingScreen({ navigation }: any) {
   const [isPlaying, setIsPlaying] = useState(false);
-  
-  // 檢查是否為自己的錄音
-  const isSelfRecording = route?.params?.selfRecording || false;
-  const recordingUri = route?.params?.recordingUri || null;
-  const recordingDuration = route?.params?.recordingDuration || 150; // 2分30秒
-
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}分${secs}秒`;
-  };
 
   const handlePlayAudio = () => {
-    if (recordingUri) {
-      // 如果有真實錄音，不需要 Alert，直接由 AudioPlayer 處理
-      return;
-    }
-    
-    // 模擬播放（沒有真實錄音時）
     setIsPlaying(!isPlaying);
-    const title = isSelfRecording ? 
-      (isPlaying ? '暫停播放自己的錄音' : '播放自己的錄音') : 
-      (isPlaying ? '暫停播放' : '開始播放');
-    
-    const message = isPlaying ? 
-      '語音已暫停' : 
-      '正在播放祝福語音...\n\n"你好，雖然我們不認識，但我想告訴你，每個人都會遇到困難，這是正常的。重要的是不要放棄自己..."';
-    
-    Alert.alert(title, message, [{ text: '確定' }]);
+    Alert.alert(
+      isPlaying ? '暫停播放' : '開始播放', 
+      isPlaying ? '語音已暫停' : '正在播放祝福語音...\n\n"你好，雖然我們不認識，但我想告訴你，每個人都會遇到困難，這是正常的。重要的是不要放棄自己..."',
+      [{ text: '確定' }]
+    );
   };
 
   return (
@@ -574,40 +541,22 @@ function ListenBlessingScreen({ navigation, route }: any) {
         </View>
 
         <Text style={styles.shareText}>
-          最近工作壓力很大，老闆總是對我的方案不滿意，感覺自己很沒用。
-          回到家也不知道該怎麼跟家人說，只能一個人默默承受...
+          最近失戀了，感覺整個人都不好了。看著身邊的朋友都很幸福，
+          自己卻一個人，很想找個人聊聊但又不想讓朋友擔心...
         </Text>
 
-        {recordingUri ? (
-          <AudioPlayer
-            audioUri={recordingUri}
-            duration={recordingDuration}
-            title={isSelfRecording ? '🎤 你的祝福錄音（測試模式）' : '來自陌生朋友的祝福'}
-            isSelfRecording={isSelfRecording}
-          />
-        ) : (
-          <View style={[styles.blessingCard, isSelfRecording && styles.selfRecordingCard]}>
-            <Text style={styles.blessingTitle}>
-              {isSelfRecording ? '🎤 你的祝福錄音（測試模式）' : '來自陌生朋友的祝福'}
-            </Text>
-            {isSelfRecording && (
-              <Text style={styles.selfRecordingNote}>
-                這是你剛才錄製的祝福語音，現在可以聽聽效果！
-              </Text>
-            )}
-            <View style={styles.audioPlayer}>
-              <TouchableOpacity 
-                style={styles.playButton}
-                onPress={handlePlayAudio}
-              >
-                <Text style={styles.playButtonText}>{isPlaying ? '⏸' : '▶'}</Text>
-              </TouchableOpacity>
-              <Text style={styles.audioDuration}>
-                時長：{formatTime(recordingDuration)}
-              </Text>
-            </View>
+        <View style={styles.blessingCard}>
+          <Text style={styles.blessingTitle}>來自陌生朋友的祝福</Text>
+          <View style={styles.audioPlayer}>
+            <TouchableOpacity 
+              style={styles.playButton}
+              onPress={handlePlayAudio}
+            >
+              <Text style={styles.playButtonText}>{isPlaying ? '⏸' : '▶'}</Text>
+            </TouchableOpacity>
+            <Text style={styles.audioDuration}>時長：2分30秒</Text>
           </View>
-        )}
+        </View>
 
         <View style={styles.responseSection}>
           <Text style={styles.responseTitle}>回應語音（可選）</Text>
@@ -629,35 +578,49 @@ function ListenBlessingScreen({ navigation, route }: any) {
 
 // 錄音頁面
 function RecordingScreen({ navigation }: any) {
-  const [recordingUri, setRecordingUri] = useState<string | null>(null);
-  const [recordingDuration, setRecordingDuration] = useState(0);
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const [hasRecording, setHasRecording] = useState(false);
 
-  const handleRecordingComplete = (uri: string, duration: number) => {
-    setRecordingUri(uri);
-    setRecordingDuration(duration);
+  const startRecording = () => {
+    setIsRecording(true);
+    setRecordingTime(0);
+    
+    // 模擬錄音計時
+    const timer = setInterval(() => {
+      setRecordingTime(prev => {
+        if (prev >= 180) { // 3分鐘自動停止
+          clearInterval(timer);
+          setIsRecording(false);
+          setHasRecording(true);
+          Alert.alert('錄音完成', '已達到最大錄音時間（3分鐘）');
+          return 180;
+        }
+        return prev + 1;
+      });
+    }, 1000);
+  };
+
+  const stopRecording = () => {
+    setIsRecording(false);
+    setHasRecording(true);
+    Alert.alert('錄音完成', '您的祝福語音已錄製完成');
   };
 
   const sendRecording = () => {
-    if (!recordingUri) {
-      Alert.alert('錯誤', '請先完成錄音');
-      return;
-    }
-
     Alert.alert(
       '發送成功', 
-      '您的祝福語音已成功發送！\n\n✅ 錄音時長：' + Math.floor(recordingDuration / 60) + '分' + (recordingDuration % 60) + '秒\n✅ 已傳送給對方\n✅ 對方將收到您的溫暖祝福\n\n🎉 立即體驗：點擊"聆聽祝福"來聽聽自己的錄音！',
+      '您的祝福語音已成功發送！\n\n✅ 錄音時長：' + Math.floor(recordingTime / 60) + '分' + (recordingTime % 60) + '秒\n✅ 已傳送給對方\n✅ 對方將收到您的溫暖祝福',
       [
-        { 
-          text: '聆聽祝福', 
-          onPress: () => navigation.navigate('ListenBlessing', { 
-            selfRecording: true, 
-            recordingUri: recordingUri,
-            recordingDuration: recordingDuration 
-          }) 
-        },
-        { text: '返回首頁', onPress: () => navigation.navigate('Home') }
+        { text: '確定', onPress: () => navigation.navigate('Home') }
       ]
     );
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
   return (
@@ -687,14 +650,36 @@ function RecordingScreen({ navigation }: any) {
             <Text style={styles.tipItem}>💡 語音長度建議 1-3 分鐘</Text>
           </View>
 
-          {/* 真實錄音組件 */}
-          <AudioRecorder 
-            onRecordingComplete={handleRecordingComplete}
-            onPlaybackComplete={() => console.log('播放完成')}
-          />
+          {/* 錄音狀態顯示 */}
+          <View style={styles.recordingStatus}>
+            <Text style={styles.recordingTimeText}>
+              {isRecording ? '🔴 錄音中' : hasRecording ? '✅ 錄音完成' : '⚪ 準備錄音'}
+            </Text>
+            <Text style={styles.recordingTimeValue}>
+              {formatTime(recordingTime)}
+            </Text>
+          </View>
+
+          {/* 錄音按鈕 */}
+          <TouchableOpacity 
+            style={[
+              styles.recordingButton,
+              isRecording && styles.recordingButtonActive
+            ]}
+            onPress={isRecording ? stopRecording : startRecording}
+          >
+            <View style={[
+              styles.recordingButtonInner,
+              isRecording && styles.recordingButtonInnerActive
+            ]}>
+              <Text style={styles.recordingButtonText}>
+                {isRecording ? '停止錄音' : hasRecording ? '重新錄音' : '開始錄音'}
+              </Text>
+            </View>
+          </TouchableOpacity>
 
           {/* 發送按鈕 */}
-          {recordingUri && (
+          {hasRecording && (
             <TouchableOpacity 
               style={styles.sendButton}
               onPress={sendRecording}
@@ -1182,18 +1167,6 @@ const styles = StyleSheet.create({
     padding: 20,
     marginBottom: 30,
     alignItems: 'center',
-  },
-  selfRecordingCard: {
-    backgroundColor: '#FF6B6B',
-    borderWidth: 2,
-    borderColor: '#FF4444',
-  },
-  selfRecordingNote: {
-    fontSize: 14,
-    color: 'white',
-    textAlign: 'center',
-    marginBottom: 15,
-    fontStyle: 'italic',
   },
   blessingTitle: {
     fontSize: 18,

@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { Card, Title, Paragraph, FAB } from 'react-native-paper';
 import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
-import { auth, db } from '../../../App';
+import { auth, db } from '../../../firebase.config';
 import PostCard from '../../components/PostCard';
 import { Post } from '../../types';
 
@@ -54,7 +54,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
       </View>
 
       <ScrollView
-        style={styles.content}
+        contentContainerStyle={styles.scrollContent}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
@@ -124,6 +124,9 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+    padding: 16,
+  },
+  scrollContent: {
     padding: 16,
   },
   emptyCard: {
