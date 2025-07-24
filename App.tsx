@@ -11,6 +11,7 @@ import {
   Alert,
   TouchableOpacity,
   Dimensions,
+  SafeAreaView,
 } from 'react-native';
 import { Button, TextInput, Card } from 'react-native-paper';
 
@@ -20,7 +21,7 @@ const { width, height } = Dimensions.get('window');
 // 歡迎頁面
 function WelcomeScreen({ navigation }: any) {
   return (
-    <View style={styles.welcomeContainer}>
+    <SafeAreaView style={styles.welcomeContainer}>
       <View style={styles.welcomeContent}>
         <Text style={styles.welcomeTitle}>你還好嗎</Text>
         <Text style={styles.welcomeSubtitle}>UGood</Text>
@@ -47,7 +48,7 @@ function WelcomeScreen({ navigation }: any) {
           </TouchableOpacity>
         </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -65,7 +66,7 @@ function RegisterScreen({ navigation }: any) {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>建立帳號</Text>
       </View>
@@ -106,14 +107,14 @@ function RegisterScreen({ navigation }: any) {
           <Text style={styles.completeButtonText}>完成註冊</Text>
         </TouchableOpacity>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
 // 主頁面
 function HomeScreen({ navigation }: any) {
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>你還好嗎</Text>
       </View>
@@ -150,7 +151,7 @@ function HomeScreen({ navigation }: any) {
           <Text style={styles.featureDescription}>收聽來自陌生人的溫暖</Text>
         </TouchableOpacity>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -159,7 +160,7 @@ function ShareTroubleScreen({ navigation }: any) {
   const [trouble, setTrouble] = useState('');
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>分享困擾</Text>
       </View>
@@ -197,14 +198,14 @@ function ShareTroubleScreen({ navigation }: any) {
           <Text style={styles.publishButtonText}>發布並等待配對</Text>
         </TouchableOpacity>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
 // 今日配對頁面
 function TodayMatchScreen({ navigation }: any) {
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>今日配對成功</Text>
         <Text style={styles.headerSubtitle}>為這位朋友錄製祝福語音</Text>
@@ -246,14 +247,14 @@ function TodayMatchScreen({ navigation }: any) {
           </TouchableOpacity>
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
 // 聆聽祝福頁面
 function ListenBlessingScreen({ navigation }: any) {
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>聆聽祝福</Text>
         <Text style={styles.headerSubtitle}>但又不想讓朋友擔心...</Text>
@@ -296,14 +297,14 @@ function ListenBlessingScreen({ navigation }: any) {
           </TouchableOpacity>
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
 // 錄音頁面
 function RecordingScreen({ navigation }: any) {
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>今日配對成功</Text>
         <Text style={styles.headerSubtitle}>為這位朋友錄製祝福語音</Text>
@@ -339,7 +340,7 @@ function RecordingScreen({ navigation }: any) {
           </TouchableOpacity>
         </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -439,7 +440,7 @@ const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: '#8FBC8F',
-    paddingTop: 50,
+    paddingTop: 20,
     paddingBottom: 20,
     paddingHorizontal: 20,
     alignItems: 'center',
