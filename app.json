@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "UGood - 你還好嗎",
+    "name": "UGood?",
     "slug": "ugood-app",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -14,13 +14,21 @@
     ],
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.ugood.app"
+      "bundleIdentifier": "com.ugood.app",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#8FBC8F"
       },
       "package": "com.ugood.app"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "bff36f0e-bc50-4205-abf3-3332d3bb8f2f"
+      }
     }
   }
-} 
+}

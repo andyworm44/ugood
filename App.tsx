@@ -29,13 +29,11 @@ function WelcomeScreen({ navigation }: any) {
   return (
     <SafeAreaView style={styles.welcomeContainer}>
       <View style={styles.welcomeContent}>
-        <Text style={styles.welcomeTitle}>你還好嗎</Text>
-        <Text style={styles.welcomeSubtitle}>UGood</Text>
+                     <Text style={styles.welcomeTitle}>UGood?</Text>
         
         <View style={styles.welcomeDescription}>
-          <Text style={styles.descriptionText}>每天與一位陌生人配對</Text>
-          <Text style={styles.descriptionText}>分享困擾，給予祝福</Text>
-          <Text style={styles.descriptionText}>讓溫暖透過語音傳遞</Text>
+          <Text style={styles.descriptionText}>每天錄音分享煩惱</Text>
+          <Text style={styles.descriptionText}>收聽陌生人的溫暖祝福</Text>
         </View>
 
         <View style={styles.welcomeButtons}>
@@ -237,6 +235,7 @@ function RegisterScreen({ navigation }: any) {
                   <Text style={[styles.genderButtonText, gender === '女性' && styles.genderButtonTextActive]}>女性</Text>
                 </TouchableOpacity>
               </View>
+              <Text style={styles.ageNote}>* 性別資訊將會隱藏</Text>
             </View>
 
             <View style={styles.inputContainer}>
@@ -303,7 +302,7 @@ function HomeScreen({ navigation }: any) {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>你還好嗎</Text>
+        <Text style={styles.headerTitle}>UGood?</Text>
         <Text style={styles.headerSubtitle}>歡迎回來，{currentUser?.displayName}</Text>
         <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
           <Text style={styles.logoutButtonText}>登出</Text>
@@ -318,7 +317,7 @@ function HomeScreen({ navigation }: any) {
         {/* 今日配對狀態 */}
         <View style={styles.matchCard}>
           <Text style={styles.matchTitle}>今日配對：等待中</Text>
-          <Text style={styles.matchSubtitle}>晚上 10:00 將為您配對</Text>
+          <Text style={styles.matchSubtitle}>晚上 8:00 將為您配對</Text>
         </View>
 
         {/* 功能選項 */}
@@ -768,6 +767,13 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: 'white',
     marginBottom: 10,
+  },
+  welcomeTagline: {
+    fontSize: 16,
+    color: 'rgba(255, 255, 255, 0.8)',
+    marginBottom: 60,
+    textAlign: 'center',
+    fontStyle: 'italic',
   },
   welcomeSubtitle: {
     fontSize: 24,
