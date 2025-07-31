@@ -14,21 +14,27 @@
     ],
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.ugood.app",
+      "bundleIdentifier": "com.ugood.apps",
+      "buildNumber": "9",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSCameraUsageDescription": "此應用程式需要使用相機來拍攝個人頭像照片",
+        "NSMicrophoneUsageDescription": "此應用程式需要使用麥克風來錄製語音訊息，與其他用戶分享和接收關懷"
       }
     },
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#8FBC8F"
       },
-      "package": "com.ugood.app"
+      "package": "com.ugood.apps"
     },
     "extra": {
       "eas": {
         "projectId": "bff36f0e-bc50-4205-abf3-3332d3bb8f2f"
       }
-    }
+    },
+    "plugins": [
+      "expo-secure-store"
+    ]
   }
 }

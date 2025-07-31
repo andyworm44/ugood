@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { StatusBar } from 'expo-status-bar';
@@ -400,19 +400,91 @@ function HomeScreen({ navigation }: any) {
 // 分享困擾頁面
 function ShareTroubleScreen({ navigation }: any) {
   const [trouble, setTrouble] = useState('');
+  const [savedTrouble, setSavedTrouble] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
+  const [hasExistingTrouble, setHasExistingTrouble] = useState(false);
+  const { shareTrouble } = useAuth();
 
-  const handleSubmit = () => {
+  // 模擬從本地存儲載入已保存的煩惱
+  useEffect(() => {
+    // 這裡可以從 AsyncStorage 或其他持久化存儲載入
+    const mockSavedTrouble = '最近工作壓力好大，老闆一直催進度，同事關係也有點緊張。每天下班都覺得很疲憊，想要有人能聽聽我的困擾，給我一些溫暖的建議。'; // 模擬已保存的煩惱內容
+    if (mockSavedTrouble) {
+      setSavedTrouble(mockSavedTrouble);
+      setTrouble(mockSavedTrouble);
+      setHasExistingTrouble(true);
+    } else {
+      setIsEditing(true); // 沒有保存的煩惱，直接進入編輯模式
+    }
+  }, []);
+
+  const handleSave = async () => {
     if (!trouble.trim()) {
       Alert.alert('提示', '請輸入您的困擾');
       return;
     }
 
-    // 模擬提交成功
+    try {
+      // 保存煩惱內容到本地
+      setSavedTrouble(trouble);
+      setHasExistingTrouble(true);
+      setIsEditing(false);
+
+             // 使用 Firebase 分享困擾並嘗試配對
+       await shareTrouble(trouble);
+
+      Alert.alert(
+        '配對成功', 
+        '您的困擾已送出配對！\n\n✅ 內容已自動保存\n✅ 正在尋找配對\n✅ 晚上8:00將收到祝福',
+        [
+          { text: '確定', onPress: () => navigation.goBack() }
+        ]
+      );
+    } catch (error) {
+      console.error('分享困擾失敗:', error);
+      Alert.alert(
+        '分享失敗',
+        '網路連接問題，請稍後再試。\n\n您的內容已保存在本地。',
+        [{ text: '確定' }]
+      );
+    }
+  };
+
+  const handleSubmitForMatching = () => {
     Alert.alert(
-      '分享成功', 
-      '您的困擾已成功分享！\n\n✅ 內容已保存\n✅ 等待配對中\n✅ 今晚將收到祝福',
+      '開始配對', 
+      '使用目前的煩惱內容進行配對！\n\n✅ 內容已提交\n✅ 等待配對中\n✅ 今晚8:00將收到祝福',
       [
         { text: '確定', onPress: () => navigation.goBack() }
+      ]
+    );
+  };
+
+  const handleEdit = () => {
+    setIsEditing(true);
+  };
+
+  const handleCancelEdit = () => {
+    setTrouble(savedTrouble); // 恢復到保存的內容
+    setIsEditing(false);
+  };
+
+  const handleDeleteTrouble = () => {
+    Alert.alert(
+      '刪除煩惱',
+      '確定要刪除目前保存的煩惱內容嗎？',
+      [
+        { text: '取消', style: 'cancel' },
+        { 
+          text: '刪除', 
+          style: 'destructive',
+          onPress: () => {
+            setSavedTrouble('');
+            setTrouble('');
+            setHasExistingTrouble(false);
+            setIsEditing(true);
+          }
+        }
       ]
     );
   };
@@ -437,27 +509,79 @@ function ShareTroubleScreen({ navigation }: any) {
 
         <Text style={styles.questionText}>今天發生了什麼讓你困擾的事？</Text>
         
-        <View style={styles.troubleInputContainer}>
-          <TextInput
-            mode="outlined"
-            multiline
-            numberOfLines={8}
-            placeholder="在這裡寫下你的困擾，讓陌生人給你溫暖的祝福..."
-            value={trouble}
-            onChangeText={setTrouble}
-            style={styles.troubleInput}
-            maxLength={300}
-            theme={{ colors: { primary: '#8FBC8F' } }}
-          />
-          <Text style={styles.characterCount}>{trouble.length}/300 字</Text>
-        </View>
+{/* 已保存煩惱的顯示模式 */}
+        {hasExistingTrouble && !isEditing ? (
+          <View>
+            <View style={styles.savedTroubleCard}>
+              <Text style={styles.savedTroubleTitle}>💾 您保存的煩惱內容</Text>
+              <Text style={styles.savedTroubleText}>{savedTrouble}</Text>
+              
+              <View style={styles.savedTroubleActions}>
+                <TouchableOpacity 
+                  style={styles.editButton}
+                  onPress={handleEdit}
+                >
+                  <Text style={styles.editButtonText}>✏️ 編輯</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                  style={styles.deleteButton}
+                  onPress={handleDeleteTrouble}
+                >
+                  <Text style={styles.deleteButtonText}>🗑️ 刪除</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
 
-        <TouchableOpacity 
-          style={styles.publishButton}
-          onPress={handleSubmit}
-        >
-          <Text style={styles.publishButtonText}>發布並等待配對</Text>
-        </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.matchButton}
+              onPress={handleSubmitForMatching}
+            >
+              <Text style={styles.matchButtonText}>🎯 使用此內容進行配對</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          // 編輯模式
+          <View>
+            <View style={styles.troubleInputContainer}>
+              <TextInput
+                mode="outlined"
+                multiline
+                numberOfLines={8}
+                placeholder="在這裡寫下你的困擾，讓陌生人給你溫暖的祝福..."
+                value={trouble}
+                onChangeText={setTrouble}
+                style={styles.troubleInput}
+                maxLength={300}
+                theme={{ 
+                  colors: { 
+                    primary: '#8FBC8F',
+                    placeholder: '#999999'
+                  } 
+                }}
+              />
+              <Text style={styles.characterCount}>{trouble.length}/300 字</Text>
+            </View>
+
+            <View style={styles.editModeActions}>
+              <TouchableOpacity 
+                style={styles.matchButton}
+                onPress={handleSave}
+              >
+                <Text style={styles.matchButtonText}>🎯 使用此內容進行配對</Text>
+              </TouchableOpacity>
+
+              {hasExistingTrouble && (
+                <TouchableOpacity 
+                  style={styles.cancelButton}
+                  onPress={handleCancelEdit}
+                >
+                  <Text style={styles.cancelButtonText}>取消編輯</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -545,7 +669,7 @@ function ListenBlessingScreen({ navigation, route }: any) {
     
     const message = isPlaying ? 
       '語音已暫停' : 
-      '正在播放祝福語音...\n\n"你好，雖然我們不認識，但我想告訴你，每個人都會遇到困難，這是正常的。重要的是不要放棄自己..."';
+      '正在播放你的祝福語音...\n\n"嗨，雖然我們素不相識，但我想告訴你，工作壓力是很多人都會遇到的。記住，你並不孤單，每個人都有自己的節奏。請對自己溫柔一點，明天會更好的..."';
     
     Alert.alert(title, message, [{ text: '確定' }]);
   };
@@ -587,11 +711,11 @@ function ListenBlessingScreen({ navigation, route }: any) {
         ) : (
           <View style={[styles.blessingCard, isSelfRecording && styles.selfRecordingCard]}>
             <Text style={styles.blessingTitle}>
-              {isSelfRecording ? '🎤 你的祝福錄音（測試模式）' : '來自陌生朋友的祝福'}
+              {isSelfRecording ? '🎤 你的祝福錄音（預覽）' : '🎤 你給陌生人的祝福'}
             </Text>
             {isSelfRecording && (
               <Text style={styles.selfRecordingNote}>
-                這是你剛才錄製的祝福語音，現在可以聽聽效果！
+                這是你剛才錄製的祝福語音，預覽一下效果！
               </Text>
             )}
             <View style={styles.audioPlayer}>
@@ -609,17 +733,43 @@ function ListenBlessingScreen({ navigation, route }: any) {
         )}
 
         <View style={styles.responseSection}>
-          <Text style={styles.responseTitle}>回應語音（可選）</Text>
-          <Text style={styles.responseDescription}>你可以錄製一段感謝的話語</Text>
+          <Text style={styles.responseTitle}>給Ta錄製祝福語音</Text>
+          <Text style={styles.responseDescription}>
+            {isSelfRecording ? 
+              '你已經錄製了祝福語音！陌生人將會收到你的溫暖話語。' : 
+              '為這位陌生朋友錄製一段溫暖的祝福話語'
+            }
+          </Text>
           
-          <TouchableOpacity 
-            style={styles.responseButton}
-            onPress={() => navigation.navigate('Recording')}
-          >
-            <View style={styles.responseButtonInner}>
-              <Text style={styles.responseButtonText}>錄製感謝語音</Text>
-            </View>
-          </TouchableOpacity>
+          {!isSelfRecording && (
+            <TouchableOpacity 
+              style={styles.responseButton}
+              onPress={() => navigation.navigate('Recording')}
+            >
+              <View style={styles.responseButtonInner}>
+                <Text style={styles.responseButtonText}>錄製祝福語音</Text>
+              </View>
+            </TouchableOpacity>
+          )}
+          
+          {isSelfRecording && (
+            <TouchableOpacity 
+              style={styles.completeButton}
+              onPress={() => {
+                Alert.alert(
+                  '祝福已送達', 
+                  '您的溫暖祝福已成功送達給陌生朋友！\n\n✅ 對方將收到您的語音\n✅ 您的善意已傳遞\n✅ 感謝您的溫暖分享',
+                  [
+                    { text: '返回首頁', onPress: () => navigation.navigate('Home') }
+                  ]
+                );
+              }}
+            >
+              <View style={styles.responseButtonInner}>
+                <Text style={styles.responseButtonText}>✅ 送出祝福</Text>
+              </View>
+            </TouchableOpacity>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -643,11 +793,11 @@ function RecordingScreen({ navigation }: any) {
     }
 
     Alert.alert(
-      '發送成功', 
-      '您的祝福語音已成功發送！\n\n✅ 錄音時長：' + Math.floor(recordingDuration / 60) + '分' + (recordingDuration % 60) + '秒\n✅ 已傳送給對方\n✅ 對方將收到您的溫暖祝福\n\n🎉 立即體驗：點擊"聆聽祝福"來聽聽自己的錄音！',
+      '錄音完成', 
+      '您的祝福語音已錄製完成！\n\n✅ 錄音時長：' + Math.floor(recordingDuration / 60) + '分' + (recordingDuration % 60) + '秒\n✅ 準備傳送給陌生朋友\n\n🎉 預覽並送出：點擊"預覽祝福"來確認錄音！',
       [
         { 
-          text: '聆聽祝福', 
+          text: '預覽祝福', 
           onPress: () => navigation.navigate('ListenBlessing', { 
             selfRecording: true, 
             recordingUri: recordingUri,
@@ -1257,6 +1407,9 @@ const styles = StyleSheet.create({
     color: 'white',
     textAlign: 'center',
   },
+  completeButton: {
+    alignItems: 'center',
+  },
 
   // 錄音頁面樣式
   recordingContainer: {
@@ -1342,5 +1495,95 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
     lineHeight: 20,
+  },
+
+  // 保存煩惱功能樣式
+  savedTroubleCard: {
+    backgroundColor: '#F0F8F0',
+    borderRadius: 15,
+    padding: 20,
+    marginBottom: 20,
+    borderLeftWidth: 4,
+    borderLeftColor: '#8FBC8F',
+  },
+  savedTroubleTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#4CAF50',
+    marginBottom: 12,
+  },
+  savedTroubleText: {
+    fontSize: 16,
+    color: '#333',
+    lineHeight: 24,
+    marginBottom: 15,
+  },
+  savedTroubleActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  editButton: {
+    backgroundColor: '#2196F3',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    flex: 0.45,
+  },
+  editButtonText: {
+    fontSize: 14,
+    color: 'white',
+    textAlign: 'center',
+    fontWeight: '500',
+  },
+  deleteButton: {
+    backgroundColor: '#FF5722',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    flex: 0.45,
+  },
+  deleteButtonText: {
+    fontSize: 14,
+    color: 'white',
+    textAlign: 'center',
+    fontWeight: '500',
+  },
+  matchButton: {
+    backgroundColor: '#4CAF50',
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  matchButtonText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'white',
+  },
+  editModeActions: {
+    marginTop: 10,
+  },
+  saveButton: {
+    backgroundColor: '#8FBC8F',
+    paddingVertical: 16,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  saveButtonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: 'white',
+  },
+  cancelButton: {
+    backgroundColor: '#757575',
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  cancelButtonText: {
+    fontSize: 14,
+    color: 'white',
+    fontWeight: '500',
   },
 }); 
