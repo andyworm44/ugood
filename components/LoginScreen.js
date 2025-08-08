@@ -11,7 +11,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { TextInput, Button } from 'react-native-paper';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/SupabaseAuthContext';
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
@@ -39,40 +39,53 @@ export default function LoginScreen({ navigation }) {
 
     setLoading(true);
     try {
-      await login(email, password);
-      Alert.alert('登入成功', '歡迎回到 UGood！');
+      console.log('🔑 開始登入嘗試:', { email: email.trim() });
+      await login(email.trim().toLowerCase(), password);
+      console.log('✅ 登入成功，準備導航到主頁');
+      // 不顯示 Alert，讓 AuthContext 的狀態變化自動處理導航
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('❌ Login error:', error);
       let errorMessage = '登入失敗，請稍後再試';
       
-      switch (error.code) {
-        case 'auth/user-not-found':
-          Alert.alert(
-            '帳號不存在', 
-            '此電子郵件尚未註冊，是否要建立新帳號？',
-            [
-              { text: '取消', style: 'cancel' },
-              { 
-                text: '註冊新帳號', 
-                onPress: () => navigation.navigate('Register')
-              }
-            ]
-          );
-          return;
-        case 'auth/wrong-password':
-          errorMessage = '密碼錯誤，請重新輸入';
-          break;
-        case 'auth/invalid-email':
-          errorMessage = '無效的電子郵件格式';
-          break;
-        case 'auth/user-disabled':
-          errorMessage = '此帳號已被停用';
-          break;
-        case 'auth/too-many-requests':
-          errorMessage = '登入嘗試次數過多，請稍後再試';
-          break;
-        default:
-          errorMessage = error.message || '登入失敗';
+      // 處理 Supabase 特定錯誤
+      if (error.message && error.message.includes('Invalid login credentials')) {
+        Alert.alert('登入失敗', '密碼錯誤，請重新輸入', [{ text: '確定' }]);
+        return;
+      } else if (error.message && error.message.includes('Email not confirmed')) {
+        errorMessage = '郵箱未驗證，請檢查郵箱或聯繫管理員';
+      } else if (error.message && error.message.includes('Too Many Requests')) {
+        errorMessage = '登入嘗試過於頻繁，請等待 2-3 分鐘後再試';
+      } else {
+        // 處理舊的 Firebase 錯誤碼（如果存在）
+        switch (error.code) {
+          case 'auth/user-not-found':
+            Alert.alert(
+              '帳號不存在', 
+              '此電子郵件尚未註冊，是否要建立新帳號？',
+              [
+                { text: '取消', style: 'cancel' },
+                { 
+                  text: '註冊新帳號', 
+                  onPress: () => navigation.navigate('Register')
+                }
+              ]
+            );
+            return;
+          case 'auth/wrong-password':
+            errorMessage = '密碼錯誤，請重新輸入';
+            break;
+          case 'auth/invalid-email':
+            errorMessage = '無效的電子郵件格式';
+            break;
+          case 'auth/user-disabled':
+            errorMessage = '此帳號已被停用';
+            break;
+          case 'auth/too-many-requests':
+            errorMessage = '登入嘗試次數過多，請稍後再試';
+            break;
+          default:
+            errorMessage = error.message || '登入失敗';
+        }
       }
       
       Alert.alert('登入失敗', errorMessage);
@@ -103,6 +116,12 @@ export default function LoginScreen({ navigation }) {
         style={styles.keyboardAvoidingView}
       >
         <View style={styles.header}>
+          <TouchableOpacity 
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
+            <Text style={styles.backButtonText}>← 返回</Text>
+          </TouchableOpacity>
           <Text style={styles.headerTitle}>歡迎回來</Text>
           <Text style={styles.headerSubtitle}>登入您的 UGood 帳號</Text>
         </View>
@@ -124,7 +143,13 @@ export default function LoginScreen({ navigation }) {
                 autoCapitalize="none"
                 autoCorrect={false}
                 style={styles.input}
-                theme={{ colors: { primary: '#8FBC8F' } }}
+                theme={{ 
+                  colors: { 
+                    primary: '#8FBC8F',
+                    onSurface: '#000000',
+                    onSurfaceVariant: '#000000'
+                  } 
+                }}
               />
             </View>
 
@@ -137,7 +162,13 @@ export default function LoginScreen({ navigation }) {
                 onChangeText={setPassword}
                 secureTextEntry={!showPassword}
                 style={styles.input}
-                theme={{ colors: { primary: '#8FBC8F' } }}
+                theme={{ 
+                  colors: { 
+                    primary: '#8FBC8F',
+                    onSurface: '#000000',
+                    onSurfaceVariant: '#000000'
+                  } 
+                }}
                 right={
                   <TextInput.Icon
                     icon={showPassword ? 'eye-off' : 'eye'}
@@ -200,6 +231,19 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
     paddingHorizontal: 20,
     alignItems: 'center',
+    position: 'relative',
+  },
+  backButton: {
+    position: 'absolute',
+    left: 20,
+    top: 20,
+    zIndex: 1,
+    padding: 10,
+  },
+  backButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '500',
   },
   headerTitle: {
     fontSize: 24,
